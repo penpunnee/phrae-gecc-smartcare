@@ -1,30 +1,58 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { QueueRequest, FeedbackItem, ComplaintItem, AuditLogEntry, StaffUser } from '@/types';
 
-// Read environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Helper to read current environment variables
+export function getSupabaseUrl(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+}
+
+export function getSupabaseAnonKey(): string {
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+}
 
 // Check if valid credentials are provided
 export function isSupabaseConfigured(): boolean {
+  const url = getSupabaseUrl();
+  const key = getSupabaseAnonKey();
   return (
-    typeof supabaseUrl === 'string' &&
-    supabaseUrl.startsWith('https://') &&
-    supabaseUrl.includes('.supabase.co') &&
-    typeof supabaseAnonKey === 'string' &&
-    supabaseAnonKey.length > 20
+    typeof url === 'string' &&
+    url.startsWith('https://') &&
+    url.includes('.supabase.co') &&
+    typeof key === 'string' &&
+    key.length > 20
   );
 }
 
-// Fallback dummy credentials to prevent Next.js build-time crash on Vercel
-const safeUrl = isSupabaseConfigured() ? supabaseUrl : 'https://placeholder-gecc-phrae.supabase.co';
-const safeKey = isSupabaseConfigured() ? supabaseAnonKey : 'placeholder-anon-key-gecc-phrae';
+// Global Supabase client instance with proxy or dynamic initialization
+let _supabaseInstance: SupabaseClient | null = null;
+let _lastUrl = '';
+let _lastKey = '';
 
-// Global Supabase client instance
-export const supabase: SupabaseClient = createClient(safeUrl, safeKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
+export function getSupabaseClient(): SupabaseClient {
+  const currentUrl = isSupabaseConfigured() ? getSupabaseUrl() : 'https://placeholder-gecc-phrae.supabase.co';
+  const currentKey = isSupabaseConfigured() ? getSupabaseAnonKey() : 'placeholder-anon-key-gecc-phrae';
+
+  if (!_supabaseInstance || _lastUrl !== currentUrl || _lastKey !== currentKey) {
+    _lastUrl = currentUrl;
+    _lastKey = currentKey;
+    _supabaseInstance = createClient(currentUrl, currentKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+  }
+  return _supabaseInstance;
+}
+
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const client = getSupabaseClient();
+    const val = (client as any)[prop];
+    if (typeof val === 'function') {
+      return val.bind(client);
+    }
+    return val;
   },
 });
 
