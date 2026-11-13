@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@layer base {
+  :root {
+    --msd-pink: #d81b60;
+    --msd-pink-dark: #ad1457;
+    --msd-pink-light: #fce4ec;
+    --msd-navy: #1a237e;
+    --msd-navy-dark: #0f144a;
+    --msd-navy-light: #e8eaf6;
+    --gecc-gold: #f59e0b;
+  }
+
+  body {
+    font-family: 'Sarabun', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: 'Prompt', 'Sarabun', system-ui, sans-serif;
+  }
+}
+
+/* Accessibility font scale classes */
+html[data-font-size="normal"] {
+  font-size: 16px;
+}
+html[data-font-size="large"] {
+  font-size: 18px;
+}
+html[data-font-size="xlarge"] {
+  font-size: 20px;
+}
+
+/* High contrast mode */
+html[data-contrast="high"] {
+  filter: contrast(115%);
+}
+html[data-contrast="high"] body {
+  background-color: #f8fafc !important;
+  color: #020617 !important;
+}
+
+/* Print styles for Queue Ticket & e-Slip */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #queue-ticket-print,
+  #queue-ticket-print *,
+  #eslip-print,
+  #eslip-print * {
+    visibility: visible;
+  }
+  #queue-ticket-print,
+  #eslip-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    background: white !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
